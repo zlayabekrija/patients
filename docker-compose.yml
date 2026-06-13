@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: patients-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-patients}
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+      target: production
+    container_name: patients-backend
+    restart: unless-stopped
+    ports:
+      - '${BACKEND_PORT:-3001}:3001'
+    env_file:
+      - apps/backend/.env
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-patients}
+      PORT: ${PORT:-3001}
+      CORS_ORIGIN: http://${FRONTEND_HOST:-localhost}:${FRONTEND_PORT:-3000}
+      FRONTEND_URL: http://${FRONTEND_HOST:-localhost}:${FRONTEND_PORT:-3000}
+      LOG_CONSOLE: ${LOG_CONSOLE:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:3001/health'').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+      target: production
+      args:
+        NEXT_PUBLIC_API_URL: http://${BACKEND_HOST:-localhost}:${BACKEND_PORT:-3001}
+    container_name: patients-frontend
+    restart: unless-stopped
+    ports:
+      - '${FRONTEND_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:3000/login'').then((response)=>process.exit(response.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 45s
+
+volumes:
+  postgres_data:

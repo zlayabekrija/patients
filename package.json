@@ -1,0 +1,34 @@
+{
+  "name": "patients",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md}\"",
+    "db:generate": "turbo db:generate",
+    "db:push": "turbo db:push",
+    "db:migrate": "npm run db:migrate --workspace=backend",
+    "db:migrate:deploy": "npm run db:migrate:deploy --workspace=backend",
+    "db:reset": "npm run db:reset --workspace=backend",
+    "db:seed": "npm run db:seed --workspace=backend",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "setup": "bash scripts/setup-and-run.sh",
+    "setup:detach": "bash scripts/setup-and-run.sh --detach"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}
