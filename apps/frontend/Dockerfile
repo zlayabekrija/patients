@@ -20,7 +20,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY package.json package-lock.json ./
 COPY apps/backend/package.json ./apps/backend/
 COPY apps/frontend/package.json ./apps/frontend/
-COPY apps/frontend/next.config.ts apps/frontend/next-env.d.ts apps/frontend/tsconfig.json apps/frontend/postcss.config.mjs apps/frontend/components.json ./apps/frontend/
+COPY apps/frontend/next.config.ts apps/frontend/tsconfig.json apps/frontend/postcss.config.mjs apps/frontend/components.json ./apps/frontend/
 COPY apps/frontend/public ./apps/frontend/public
 COPY apps/frontend/src ./apps/frontend/src
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -43,7 +43,7 @@ EXPOSE 3000
 CMD ["node", "server.js"]
 
 FROM deps AS development
-COPY apps/frontend/next.config.ts apps/frontend/next-env.d.ts apps/frontend/tsconfig.json apps/frontend/postcss.config.mjs apps/frontend/components.json ./apps/frontend/
+COPY apps/frontend/next.config.ts apps/frontend/tsconfig.json apps/frontend/postcss.config.mjs apps/frontend/components.json ./apps/frontend/
 COPY apps/frontend/public ./apps/frontend/public
 COPY apps/frontend/src ./apps/frontend/src
 WORKDIR /app/apps/frontend
